@@ -4,7 +4,9 @@ from spark.join import spark_join
 
 
 if __name__ == '__main__':
-    spark_join()
+
+    spark_new()
+
 
 
 

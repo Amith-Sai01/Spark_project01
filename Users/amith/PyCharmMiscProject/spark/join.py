@@ -10,10 +10,10 @@ def spark_join():
 
     spark.conf.set("spark.sql.debug.maxToStringFields", 1000)
 
-    sales_items = spark.read.csv(
+    sales_items = get_read_csv(
         r"C:\Users\amith\Downloads\Sales_feb-2.txt",
         header=True,
-        inferSchema=True
+        schema=True
     )
 
     sales_summary = spark.read.csv(

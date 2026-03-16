@@ -1,21 +1,44 @@
-from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
+from utils.read_utils import get_read_csv
+from utils.spark_session import spark_call
+from utils.write_utils import write_results
 
-spark = SparkSession.builder \
-    .appName("CSV Example") \
-    .master("local[*]") \
-    .getOrCreate()
+# Create Spark session
+spark = spark_call("csv_example")
+
 def spark_new():
-    df = spark.read.csv(r"C:\Users\amith\Downloads\sales1.csv", header=True, inferSchema=True)
+
+    # Read file
+    df = get_read_csv(spark, r"C:\Users\amith\Downloads\sales_jan-1.txt")
+
     df.show()
     df.printSchema()
 
-    df = df.toDF(*[c.strip() for c in df.columns])
-
+    # Clean column names (remove spaces)
     df = df.toDF(*[c.strip().replace(" ", "_") for c in df.columns])
 
+    # Check columns after cleaning
+    print(df.columns)
 
+    # Filter rows and calculate GST
+    result = df.filter(col("Sell_Amount") > 1000) \
+               .select("Items", "Sell_Amount") \
+               .withColumn("GST", col("Sell_Amount") * 0.18)
 
-    df.filter(col("AMOUNT") > 1000) .select("ITEM_NAME", "AMOUNT") .withColumn("GST", col("AMOUNT") * 0.18) .show()
-    df.groupBy("COMPANY").count().show()
+    print("result show")
+    result.show()
+
+    # Group by patient name
+    grouped = df.groupBy("Patient_Name").count()
+
+    print("grouped show")
+    grouped.show()
+
+    # Write results
+    write_results(
+        result,
+        grouped,
+        r"C:\Users\amith\PyCharmMiscProject\data\output_filtered",
+        r"C:\Users\amith\PyCharmMiscProject\data\output_grouped"
+    )
     spark.stop()
